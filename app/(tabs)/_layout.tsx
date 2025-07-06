@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Stack } from 'expo-router/stack'; // Added for nested navigation
@@ -10,20 +9,8 @@ import {
   Menu,
 } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'expo-router'; // Added for redirection
 
 export default function TabLayout() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter(); // Initialize router for redirection
-
-  // Force redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login'); // Redirect to login if not authenticated
-    }
-  }, [isAuthenticated, router]);
-
   return (
     <Tabs
       screenOptions={{
@@ -73,13 +60,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <UserCircle size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: 'More',
-          tabBarIcon: ({ color, size }) => <Menu size={size} color={color} />,
         }}
       />
     </Tabs>

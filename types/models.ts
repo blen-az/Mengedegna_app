@@ -86,3 +86,10 @@ export const RegisterFormSchema = z.object({
 
 export type LoginForm = z.infer<typeof LoginFormSchema>;
 export type RegisterForm = z.infer<typeof RegisterFormSchema>;
+
+// User Profile interface for Firebase operations
+export interface UserProfile {
+  email: string;
+  displayName: string;
+  phoneNumber: string;
+}

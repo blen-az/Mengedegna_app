@@ -116,7 +116,7 @@ export default function HomeScreen() {
               </Text>
               <Text style={styles.subtitle}>Where are you going today?</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/more')}>
+            <TouchableOpacity onPress={() => router.push('/profile')}>
               <Image
                 source={{
                   uri:

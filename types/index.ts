@@ -14,7 +14,8 @@ export {
   LoginFormSchema,
   RegisterFormSchema,
   LoginForm,
-  RegisterForm
+  RegisterForm,
+  UserProfile
 } from './models';
 
 // Re-export types from Post.ts

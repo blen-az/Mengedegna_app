@@ -1,19 +1,20 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut, 
-  updateProfile, 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signInWithRedirect, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
   getRedirectResult,
   getAuthInstance,
   createUserProfile,
   getUserProfile,
-  updateUserProfile
+  updateUserProfile,
 } from '@/services/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 interface User {
   uid: string;
@@ -30,7 +31,11 @@ interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (data: any) => Promise<void>;
@@ -57,58 +62,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const auth = getAuthInstance();
-    
     if (!auth || !auth.onAuthStateChanged) {
-      // Mock auth for development
-      setIsInitialized(true);
+      setIsInitialized(true); // Mock initialization for development
       return;
     }
-    
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        const user: User = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-        };
-        
-        setUser(user);
-        setIsAuthenticated(true);
-        
-        try {
-          const profile = await getUserProfile(firebaseUser.uid);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        }
-      } else {
-        setUser(null);
-        setUserProfile(null);
-        setIsAuthenticated(false);
-      }
-      
-      setIsInitialized(true);
-    });
 
-    if (Platform.OS === 'web') {
-      getRedirectResult(auth).then((result) => {
-        if (result?.user) {
+    const unsubscribe = auth.onAuthStateChanged(
+      async (firebaseUser: FirebaseUser | null) => {
+        setIsLoading(true);
+        if (firebaseUser) {
           const user: User = {
-            uid: result.user.uid,
-            email: result.user.email,
-            displayName: result.user.displayName,
-            photoURL: result.user.photoURL,
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
           };
           setUser(user);
           setIsAuthenticated(true);
+          try {
+            const profile = await getUserProfile(firebaseUser.uid);
+            setUserProfile(profile);
+          } catch (err) {
+            console.error('Error fetching profile:', err);
+            setError('Failed to load profile data.');
+          }
+        } else {
+          setUser(null);
+          setUserProfile(null);
+          setIsAuthenticated(false);
         }
-      }).catch((error) => {
-        console.error('Redirect result error:', error);
-        setError('Failed to complete authentication. Please try again.');
-      });
+        setIsInitialized(true);
+        setIsLoading(false);
+      }
+    );
+
+    // Handle redirect result for web
+    if (Platform.OS === 'web') {
+      getRedirectResult(auth)
+        .then((result) => {
+          if (result?.user) {
+            const user: User = {
+              uid: result.user.uid,
+              email: result.user.email,
+              displayName: result.user.displayName,
+              photoURL: result.user.photoURL,
+            };
+            setUser(user);
+            setIsAuthenticated(true);
+            createUserProfile(result.user.uid, {
+              email: result.user.email || '',
+              name: result.user.displayName || '',
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('Redirect error:', err);
+          setError('Authentication redirect failed.');
+        });
     }
-    
+
     return () => unsubscribe();
   }, []);
 
@@ -120,37 +132,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const auth = getAuthInstance();
       if (!auth || !signInWithEmailAndPassword) {
-        // Mock login for development
         const mockUser: User = {
-          uid: 'mock-user-id',
+          uid: 'mock-id',
           email,
-          displayName: 'Mock User',
+          displayName: 'Mock',
           photoURL: null,
         };
         setUser(mockUser);
         setIsAuthenticated(true);
         return;
       }
-      
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Failed to login. Please try again.');
-      throw error;
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName: string
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
       const auth = getAuthInstance();
       if (!auth || !createUserWithEmailAndPassword) {
-        // Mock registration for development
         const mockUser: User = {
-          uid: 'mock-user-id',
+          uid: 'mock-id',
           email,
           displayName: fullName,
           photoURL: null,
@@ -159,21 +172,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(true);
         return;
       }
-      
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      
-      await updateProfile(user, { displayName: fullName });
-      
-      await createUserProfile(user.uid, {
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
         email,
-        fullName,
+        password
+      );
+      await updateProfile(user, { displayName: fullName });
+      await createUserProfile(user.uid, { email, name: fullName });
+      setUser({
+        uid: user.uid,
+        email: user.email,
+        displayName: fullName,
         photoURL: user.photoURL,
       });
-      
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      setError(error.message || 'Failed to register. Please try again.');
-      throw error;
+      setIsAuthenticated(true);
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'Registration failed.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -185,36 +201,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const auth = getAuthInstance();
       if (!auth || !GoogleAuthProvider) {
-        // Mock Google sign in for development
         const mockUser: User = {
-          uid: 'mock-google-user-id',
+          uid: 'mock-google-id',
           email: 'user@gmail.com',
           displayName: 'Google User',
-          photoURL: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
+          photoURL: 'https://example.com/photo.jpg',
         };
         setUser(mockUser);
         setIsAuthenticated(true);
         return;
       }
-      
       const provider = new GoogleAuthProvider();
-      
+      let result;
       if (Platform.OS === 'web') {
         await signInWithRedirect(auth, provider);
       } else {
-        const result = await signInWithPopup(auth, provider);
+        result = await signInWithPopup(auth, provider);
         if (result.user) {
           await createUserProfile(result.user.uid, {
+            email: result.user.email || '',
+            name: result.user.displayName || '',
+          });
+          setUser({
+            uid: result.user.uid,
             email: result.user.email,
-            fullName: result.user.displayName,
+            displayName: result.user.displayName,
             photoURL: result.user.photoURL,
           });
+          setIsAuthenticated(true);
         }
       }
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      setError(error.message || 'Failed to sign in with Google. Please try again.');
-      throw error;
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      setError(err.message || 'Google sign-in failed.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -226,18 +246,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const auth = getAuthInstance();
       if (!auth || !signOut) {
-        // Mock logout for development
         setUser(null);
         setUserProfile(null);
         setIsAuthenticated(false);
         return;
       }
-      
       await signOut(auth);
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      setError(error.message || 'Failed to logout. Please try again.');
-      throw error;
+      setUser(null);
+      setUserProfile(null);
+      setIsAuthenticated(false);
+    } catch (err: any) {
+      console.error('Logout error:', err);
+      setError(err.message || 'Logout failed.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -248,30 +269,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setError(null);
     try {
       const auth = getAuthInstance();
-      const currentUser = auth?.currentUser;
-      
-      if (!currentUser) {
-        throw new Error('No authenticated user found');
-      }
-
-      // Update auth profile
+      const currentUser = auth.currentUser;
+      if (!currentUser) throw new Error('No authenticated user found');
       if (updateProfile) {
         await updateProfile(currentUser, {
-          displayName: data.fullName,
+          displayName: data.name,
           photoURL: data.photoURL,
         });
       }
-
-      // Update Firestore profile
       await updateUserProfile(currentUser.uid, data);
-      
-      // Update local state
-      setUserProfile((prev: any) => ({ ...prev, ...data }));
-      
-    } catch (error: any) {
-      console.error('Update profile error:', error);
-      setError(error.message || 'Failed to update profile. Please try again.');
-      throw error;
+      const updatedProfile = await getUserProfile(currentUser.uid);
+      setUserProfile(updatedProfile);
+      setUser((prev) =>
+        prev
+          ? { ...prev, displayName: data.name, photoURL: data.photoURL }
+          : null
+      );
+    } catch (err: any) {
+      console.error('Update profile error:', err);
+      setError(err.message || 'Profile update failed.');
+      throw err;
     } finally {
       setIsLoading(false);
     }
