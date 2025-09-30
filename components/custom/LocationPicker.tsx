@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Modal, TouchableOpacity, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Modal,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { X, Search, MapPin } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { fetchLocations } from '@/services/locationService';
+import type { Location } from '@/services/locationService';
 
 interface LocationPickerProps {
   isVisible: boolean;
@@ -18,8 +28,8 @@ export default function LocationPicker({
   isFrom = true,
 }: LocationPickerProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [locations, setLocations] = useState([]);
-  const [filteredLocations, setFilteredLocations] = useState([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [filteredLocations, setFilteredLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,7 +50,7 @@ export default function LocationPicker({
 
   useEffect(() => {
     if (searchQuery) {
-      const filtered = locations.filter(location =>
+      const filtered = locations.filter((location: Location) =>
         location.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredLocations(filtered);
@@ -49,12 +59,12 @@ export default function LocationPicker({
     }
   }, [searchQuery, locations]);
 
-  const handleSelectLocation = (location) => {
+  const handleSelectLocation = (location: Location) => {
     onSelectLocation(location.name);
     onClose();
   };
 
-  const renderLocationItem = ({ item }) => (
+  const renderLocationItem = ({ item }: { item: Location }) => (
     <TouchableOpacity
       style={styles.locationItem}
       onPress={() => handleSelectLocation(item)}
@@ -62,7 +72,9 @@ export default function LocationPicker({
       <MapPin size={18} color={isFrom ? Colors.primary : Colors.secondary} />
       <View style={styles.locationInfo}>
         <Text style={styles.locationName}>{item.name}</Text>
-        {item.region && <Text style={styles.locationRegion}>{item.region}</Text>}
+        {item.region && (
+          <Text style={styles.locationRegion}>{item.region}</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -77,7 +89,9 @@ export default function LocationPicker({
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>{isFrom ? 'From Where?' : 'To Where?'}</Text>
+            <Text style={styles.title}>
+              {isFrom ? 'From Where?' : 'To Where?'}
+            </Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <X size={20} color={Colors.gray[700]} />
             </TouchableOpacity>

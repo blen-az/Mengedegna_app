@@ -26,7 +26,7 @@ export default function PersonalInfoScreen() {
       if (user?.uid) {
         try {
           const profile = await getUserProfile(user.uid);
-          setUserProfile(profile);
+          setUserProfile(profile as UserProfile | null);
         } catch (error) {
           Alert.alert(
             'Error',

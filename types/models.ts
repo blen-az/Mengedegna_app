@@ -93,3 +93,67 @@ export interface UserProfile {
   displayName: string;
   phoneNumber: string;
 }
+
+// --- Firestore Domain Types (for role-based access and operator features) ---
+
+export type UserRole = 'user' | 'operator' | 'admin';
+
+export interface AppUser {
+  uid: string;
+  email: string;
+  fullName: string;
+  photoURL?: string | null;
+  role: UserRole;
+  companyId?: string | null;
+  createdAt: Date | unknown;
+  updatedAt: Date | unknown;
+}
+
+export interface CompanyDoc {
+  id: string;
+  name: string;
+  ownerId: string; // operator uid
+  contact?: string;
+  createdAt: Date | unknown;
+}
+
+export interface BusDoc {
+  id: string;
+  companyId: string;
+  operatorId: string;
+  plateNumber: string;
+  capacity: number;
+  type?: string;
+  createdAt: Date | unknown;
+}
+
+export type TripStatus = 'active' | 'cancelled' | 'completed';
+
+export interface TripDoc {
+  id: string;
+  operatorId: string;
+  busId: string;
+  origin: string;
+  destination: string;
+  date: string; // YYYY-MM-DD
+  departureTime: string; // HH:mm
+  arrivalTime?: string; // HH:mm
+  price: number;
+  seatsAvailable: number;
+  status: TripStatus;
+  createdAt: Date | unknown;
+}
+
+export type PaymentStatus = 'pending' | 'paid' | 'cancelled' | 'refunded';
+export type BookingStatus = 'confirmed' | 'cancelled';
+
+export interface BookingDoc {
+  id: string;
+  tripId: string;
+  userId: string;
+  seats: number;
+  totalPrice: number;
+  paymentStatus: PaymentStatus;
+  bookingStatus: BookingStatus;
+  createdAt: Date | unknown;
+}

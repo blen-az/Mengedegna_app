@@ -1,7 +1,7 @@
 // Mock location data and service functions
 
 // Define types for location data
-interface Location {
+export interface Location {
   id: number;
   name: string;
   region: string;

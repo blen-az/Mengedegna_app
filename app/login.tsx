@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import SafeAreaView from '@/components/core/SafeAreaView';
@@ -9,7 +20,7 @@ import { useAuth } from '@/context/AuthContext';
 export default function LoginScreen() {
   const router = useRouter();
   const { login, signInWithGoogle } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,8 +111,8 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={() => router.back()}
             >
               <ChevronLeft size={24} color={Colors.gray[800]} />
@@ -119,7 +130,12 @@ export default function LoginScreen() {
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email</Text>
-              <View style={[styles.inputContainer, errors.email ? styles.inputError : null]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  errors.email ? styles.inputError : null,
+                ]}
+              >
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your email"
@@ -131,12 +147,19 @@ export default function LoginScreen() {
                   onChangeText={setEmail}
                 />
               </View>
-              {errors.email ? <Text style={styles.errorMessage}>{errors.email}</Text> : null}
+              {errors.email ? (
+                <Text style={styles.errorMessage}>{errors.email}</Text>
+              ) : null}
             </View>
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
-              <View style={[styles.inputContainer, errors.password ? styles.inputError : null]}>
+              <View
+                style={[
+                  styles.inputContainer,
+                  errors.password ? styles.inputError : null,
+                ]}
+              >
                 <TextInput
                   style={styles.input}
                   placeholder="Enter your password"
@@ -145,8 +168,8 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity 
-                  style={styles.eyeIcon} 
+                <TouchableOpacity
+                  style={styles.eyeIcon}
                   onPress={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -156,18 +179,20 @@ export default function LoginScreen() {
                   )}
                 </TouchableOpacity>
               </View>
-              {errors.password ? <Text style={styles.errorMessage}>{errors.password}</Text> : null}
+              {errors.password ? (
+                <Text style={styles.errorMessage}>{errors.password}</Text>
+              ) : null}
             </View>
 
-            <TouchableOpacity 
-              style={styles.forgotPassword} 
+            <TouchableOpacity
+              style={styles.forgotPassword}
               onPress={handleForgotPassword}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={styles.loginButton} 
+            <TouchableOpacity
+              style={styles.loginButton}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -184,8 +209,8 @@ export default function LoginScreen() {
               <View style={styles.divider} />
             </View>
 
-            <TouchableOpacity 
-              style={styles.googleButton} 
+            <TouchableOpacity
+              style={styles.googleButton}
               onPress={handleGoogleLogin}
               disabled={loading}
             >
@@ -195,8 +220,8 @@ export default function LoginScreen() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Don't have an account?{' '}
-              <Text 
+              Don&apos;t have an account?{' '}
+              <Text
                 style={styles.registerLink}
                 onPress={() => router.push('/register')}
               >

@@ -9,7 +9,7 @@ interface BookingCardProps {
 }
 
 export default function BookingCard({ booking, onPress }: BookingCardProps) {
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
         return Colors.success;
@@ -26,10 +26,22 @@ export default function BookingCard({ booking, onPress }: BookingCardProps) {
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.header}>
         <View style={styles.route}>
-          <Text style={styles.routeText}>{booking.trip.from} to {booking.trip.to}</Text>
+          <Text style={styles.routeText}>
+            {booking.trip.from} to {booking.trip.to}
+          </Text>
         </View>
-        <View style={[styles.status, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
-          <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
+        <View
+          style={[
+            styles.status,
+            { backgroundColor: getStatusColor(booking.status) + '20' },
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              { color: getStatusColor(booking.status) },
+            ]}
+          >
             {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
           </Text>
         </View>
@@ -44,10 +56,10 @@ export default function BookingCard({ booking, onPress }: BookingCardProps) {
         <View style={styles.detailItem}>
           <Calendar size={16} color={Colors.primary} />
           <Text style={styles.detailText}>
-            {new Date(booking.trip.date).toLocaleDateString('en-US', { 
+            {new Date(booking.trip.date).toLocaleDateString('en-US', {
               weekday: 'short',
-              month: 'short', 
-              day: 'numeric'
+              month: 'short',
+              day: 'numeric',
             })}
           </Text>
         </View>
@@ -57,7 +69,9 @@ export default function BookingCard({ booking, onPress }: BookingCardProps) {
         </View>
         <View style={styles.detailItem}>
           <MapPin size={16} color={Colors.primary} />
-          <Text style={styles.detailText}>{booking.trip.departureTerminal}</Text>
+          <Text style={styles.detailText}>
+            {booking.trip.departureTerminal}
+          </Text>
         </View>
       </View>
 
@@ -65,7 +79,7 @@ export default function BookingCard({ booking, onPress }: BookingCardProps) {
         <View style={styles.seats}>
           <Text style={styles.seatsLabel}>Seats</Text>
           <View style={styles.seatsList}>
-            {booking.seats.map((seat) => (
+            {booking.seats.map((seat: string) => (
               <View key={seat} style={styles.seatBadge}>
                 <Text style={styles.seatNumber}>{seat}</Text>
               </View>

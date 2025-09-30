@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function hasRole(role) {
+      return (request.auth.token.role == role) ||
+             (userDoc(request.auth.uid).data.role == role);
+    }
+
+    function isAdmin() { return hasRole('admin'); }
+    function isOperator() { return hasRole('operator'); }
+    function isUser() { return hasRole('user') || isOperator() || isAdmin(); }
+
+    match /users/{uid} {
+      allow read: if isUser();
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if (request.auth != null && request.auth.uid == uid &&
+                        !("role" in request.resource.data.diff().changedKeys())) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /companies/{companyId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() ||
+        (isOperator() && request.auth.uid == request.resource.data.ownerId);
+    }
+
+    match /buses/{busId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isOperator();
+    }
+
+    match /trips/{tripId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || isOperator();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAdmin() || isOperator() ||
+        (isUser() && request.auth.uid == resource.data.userId);
+      allow create: if isUser() && request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() ||
+        (isUser() && request.auth.uid == resource.data.userId);
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isUser();
+      allow update, delete: if isAdmin() ||
+        (isUser() && request.auth.uid == resource.data.userId);
+    }
+  }
+}
+
+
+

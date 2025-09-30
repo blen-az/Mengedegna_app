@@ -121,7 +121,7 @@ export default function HomeScreen() {
                 source={{
                   uri:
                     user?.photoURL ||
-                    'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
+                    'https://www.dreamstime.com/default-avatar-profile-icon-vector-unknown-social-media-user-photo-default-avatar-profile-icon-vector-unknown-social-media-user-image184816085',
                 }}
                 style={styles.profileImage}
               />

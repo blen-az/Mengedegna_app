@@ -1,13 +1,19 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import Colors from '@/constants/Colors';
 
 interface SeatSelectionProps {
-  seats: Array<{
+  seats: {
     id: string;
     status: 'available' | 'booked' | 'selected';
     price?: number;
-  }>;
+  }[];
   selectedSeats: string[];
   onSelectSeat: (seatId: string) => void;
 }
@@ -20,15 +26,19 @@ export default function SeatSelection({
   // Organize seats in a grid - assuming 4 seats per row (2-2 configuration)
   const rowsOfSeats = [];
   const seatsPerRow = 4;
-  
+
   for (let i = 0; i < seats.length; i += seatsPerRow) {
     rowsOfSeats.push(seats.slice(i, i + seatsPerRow));
   }
 
-  const renderSeat = (seat) => {
+  const renderSeat = (seat: {
+    id: string;
+    status: 'available' | 'booked' | 'selected';
+    price?: number;
+  }) => {
     const isSelected = selectedSeats.includes(seat.id);
     const isBooked = seat.status === 'booked';
-    
+
     return (
       <TouchableOpacity
         key={seat.id}
@@ -60,7 +70,7 @@ export default function SeatSelection({
           <View style={styles.steeringWheel} />
           <Text style={styles.driverText}>Driver</Text>
         </View>
-        
+
         <View style={styles.seatsContainer}>
           {rowsOfSeats.map((row, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
@@ -74,7 +84,7 @@ export default function SeatSelection({
             </View>
           ))}
         </View>
-        
+
         <View style={styles.backSection}>
           <Text style={styles.backText}>Back</Text>
         </View>

@@ -31,6 +31,8 @@ export default function RootLayout() {
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="trip/[id]" />
+            <Stack.Screen name="booking/[id]" />
           </Stack>
           <StatusBar style="auto" />
         </AuthProvider>

@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Modal, TouchableOpacity, FlatList } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Modal,
+  TouchableOpacity,
+  FlatList,
+} from 'react-native';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
@@ -14,8 +21,18 @@ interface DatePickerProps {
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 export default function DatePicker({
@@ -31,12 +48,12 @@ export default function DatePicker({
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
 
   // Get the days in the current month
-  const getDaysInMonth = (year, month) => {
+  const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
   // Get the first day of the month (0 = Sunday, 1 = Monday, etc.)
-  const getFirstDayOfMonth = (year, month) => {
+  const getFirstDayOfMonth = (year: number, month: number) => {
     return new Date(year, month, 1).getDay();
   };
 
@@ -44,34 +61,36 @@ export default function DatePicker({
   const generateCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentYear, currentMonth);
     const firstDayOfMonth = getFirstDayOfMonth(currentYear, currentMonth);
-    
+
     const days = [];
-    
+
     // Add empty cells for days before the first day of month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push({ day: '', isCurrentMonth: false });
     }
-    
+
     // Add days of the current month
     for (let i = 1; i <= daysInMonth; i++) {
       const date = new Date(currentYear, currentMonth, i);
       const isBeforeMinDate = date < new Date(minDate.setHours(0, 0, 0, 0));
       const isAfterMaxDate = date > new Date(maxDate.setHours(23, 59, 59, 999));
-      
+
       days.push({
         day: i,
         isCurrentMonth: true,
-        isSelected: i === selectedDate.getDate() && 
-                    currentMonth === selectedDate.getMonth() && 
-                    currentYear === selectedDate.getFullYear(),
-        isToday: i === new Date().getDate() && 
-                 currentMonth === new Date().getMonth() && 
-                 currentYear === new Date().getFullYear(),
+        isSelected:
+          i === selectedDate.getDate() &&
+          currentMonth === selectedDate.getMonth() &&
+          currentYear === selectedDate.getFullYear(),
+        isToday:
+          i === new Date().getDate() &&
+          currentMonth === new Date().getMonth() &&
+          currentYear === new Date().getFullYear(),
         isDisabled: isBeforeMinDate || isAfterMaxDate,
         date,
       });
     }
-    
+
     return days;
   };
 
@@ -93,18 +112,22 @@ export default function DatePicker({
     }
   };
 
-  const handleSelectDate = (day) => {
+  const handleSelectDate = (day: {
+    isDisabled: boolean;
+    isCurrentMonth: boolean;
+    date: Date;
+  }) => {
     if (day.isDisabled || !day.isCurrentMonth) return;
-    
+
     onSelectDate(day.date);
     onClose();
   };
 
-  const renderCalendarDay = ({ item, index }) => {
+  const renderCalendarDay = ({ item, index }: { item: any; index: number }) => {
     if (!item.isCurrentMonth) {
       return <View style={styles.emptyDay} />;
     }
-    
+
     return (
       <TouchableOpacity
         style={[
@@ -134,7 +157,7 @@ export default function DatePicker({
     const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
     const lastDayOfPrevMonth = new Date(prevYear, prevMonth + 1, 0);
-    
+
     return lastDayOfPrevMonth < minDate;
   };
 
@@ -142,7 +165,7 @@ export default function DatePicker({
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
     const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
     const firstDayOfNextMonth = new Date(nextYear, nextMonth, 1);
-    
+
     return firstDayOfNextMonth > maxDate;
   };
 
@@ -163,7 +186,7 @@ export default function DatePicker({
           </View>
 
           <View style={styles.calendarHeader}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.monthNavButton,
                 isPreviousMonthDisabled() && styles.disabledNavButton,
@@ -171,14 +194,21 @@ export default function DatePicker({
               onPress={goToPreviousMonth}
               disabled={isPreviousMonthDisabled()}
             >
-              <ChevronLeft size={20} color={isPreviousMonthDisabled() ? Colors.gray[400] : Colors.gray[700]} />
+              <ChevronLeft
+                size={20}
+                color={
+                  isPreviousMonthDisabled()
+                    ? Colors.gray[400]
+                    : Colors.gray[700]
+                }
+              />
             </TouchableOpacity>
-            
+
             <Text style={styles.monthYear}>
               {MONTHS[currentMonth]} {currentYear}
             </Text>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={[
                 styles.monthNavButton,
                 isNextMonthDisabled() && styles.disabledNavButton,
@@ -186,7 +216,12 @@ export default function DatePicker({
               onPress={goToNextMonth}
               disabled={isNextMonthDisabled()}
             >
-              <ChevronRight size={20} color={isNextMonthDisabled() ? Colors.gray[400] : Colors.gray[700]} />
+              <ChevronRight
+                size={20}
+                color={
+                  isNextMonthDisabled() ? Colors.gray[400] : Colors.gray[700]
+                }
+              />
             </TouchableOpacity>
           </View>
 

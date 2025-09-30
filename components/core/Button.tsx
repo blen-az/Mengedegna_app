@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import Colors from '@/constants/Colors';
 
 interface ButtonProps {
@@ -23,11 +30,11 @@ export default function Button({
   loading = false,
   style,
   textStyle,
-  icon
+  icon,
 }: ButtonProps) {
   const getButtonStyle = () => {
     let buttonStyle: ViewStyle = { ...styles.button };
-    
+
     // Variant styles
     if (variant === 'primary') {
       buttonStyle = { ...buttonStyle, ...styles.primaryButton };
@@ -38,25 +45,25 @@ export default function Button({
     } else if (variant === 'text') {
       buttonStyle = { ...buttonStyle, ...styles.textButton };
     }
-    
+
     // Size styles
     if (size === 'small') {
       buttonStyle = { ...buttonStyle, ...styles.smallButton };
     } else if (size === 'large') {
       buttonStyle = { ...buttonStyle, ...styles.largeButton };
     }
-    
+
     // Disabled state
     if (disabled) {
       buttonStyle = { ...buttonStyle, ...styles.disabledButton };
     }
-    
+
     return buttonStyle;
   };
-  
+
   const getTextStyle = () => {
     let textStyleObj: TextStyle = { ...styles.buttonText };
-    
+
     // Variant text styles
     if (variant === 'primary') {
       textStyleObj = { ...textStyleObj, ...styles.primaryButtonText };
@@ -67,19 +74,19 @@ export default function Button({
     } else if (variant === 'text') {
       textStyleObj = { ...textStyleObj, ...styles.textButtonText };
     }
-    
+
     // Size text styles
     if (size === 'small') {
       textStyleObj = { ...textStyleObj, ...styles.smallButtonText };
     } else if (size === 'large') {
       textStyleObj = { ...textStyleObj, ...styles.largeButtonText };
     }
-    
+
     // Disabled text
     if (disabled) {
       textStyleObj = { ...textStyleObj, ...styles.disabledButtonText };
     }
-    
+
     return textStyleObj;
   };
 
@@ -97,8 +104,14 @@ export default function Button({
         />
       ) : (
         <>
-          {icon && icon}
-          <Text style={[getTextStyle(), icon && styles.textWithIcon, textStyle]}>
+          {icon ? icon : null}
+          <Text
+            style={[
+              getTextStyle(),
+              icon ? styles.textWithIcon : undefined,
+              textStyle,
+            ]}
+          >
             {title}
           </Text>
         </>

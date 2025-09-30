@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Calendar, Clock, MapPin, Star, Users, Info, Shield } from 'lucide-react-native';
-import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
+import {
+  ChevronLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  Star,
+  Users,
+  Info,
+  Shield,
+} from 'lucide-react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 import SafeAreaView from '@/components/core/SafeAreaView';
 import SeatSelection from '@/components/custom/SeatSelection';
 import Button from '@/components/core/Button';
 import { fetchTripById } from '@/services/tripService';
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
+import type { TripModel } from '@/types';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -16,19 +41,23 @@ export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  
-  const [trip, setTrip] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedSeats, setSelectedSeats] = useState([]);
-  const [error, setError] = useState(null);
+
+  const [trip, setTrip] = useState<TripModel | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const scrollY = useSharedValue(0);
 
   useEffect(() => {
     const loadTrip = async () => {
       try {
-        const tripData = await fetchTripById(id);
-        setTrip(tripData);
+        const tripId = Array.isArray(id) ? id[0] : id;
+        if (!tripId) {
+          throw new Error('Invalid trip id');
+        }
+        const tripData = await fetchTripById(tripId as string);
+        setTrip(tripData as unknown as TripModel);
       } catch (err) {
         console.error('Error fetching trip:', err);
         setError('Failed to load trip details. Please try again.');
@@ -57,41 +86,42 @@ export default function TripDetailScreen() {
     };
   });
 
-  const handleSeatSelect = (seatId) => {
+  const handleSeatSelect = (seatId: string) => {
     if (selectedSeats.includes(seatId)) {
       setSelectedSeats(selectedSeats.filter((id) => id !== seatId));
     } else {
       if (selectedSeats.length < 5) {
         setSelectedSeats([...selectedSeats, seatId]);
       } else {
-        Alert.alert('Maximum Seats', 'You can only select up to 5 seats per booking.');
+        Alert.alert(
+          'Maximum Seats',
+          'You can only select up to 5 seats per booking.'
+        );
       }
     }
   };
 
   const handleContinue = () => {
     if (selectedSeats.length === 0) {
-      Alert.alert('No Seats Selected', 'Please select at least one seat to continue.');
-      return;
-    }
-
-    if (!isAuthenticated) {
       Alert.alert(
-        'Login Required',
-        'You need to login to book tickets.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Login', onPress: () => router.push('/login') }
-        ]
+        'No Seats Selected',
+        'Please select at least one seat to continue.'
       );
       return;
     }
 
+    if (!isAuthenticated) {
+      Alert.alert('Login Required', 'You need to login to book tickets.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Login', onPress: () => router.push('/login') },
+      ]);
+      return;
+    }
+
+    const tripId = Array.isArray(id) ? id[0] : id;
     router.push({
-      pathname: `/booking/${id}`,
-      params: { 
-        seats: selectedSeats.join(','),
-      }
+      pathname: '/booking/[id]',
+      params: { id: String(tripId), seats: selectedSeats.join(',') },
     });
   };
 
@@ -109,7 +139,7 @@ export default function TripDetailScreen() {
       <SafeAreaView style={styles.errorContainer}>
         <Info size={64} color={Colors.error} />
         <Text style={styles.errorText}>{error}</Text>
-        <Button 
+        <Button
           title="Go Back"
           onPress={() => router.back()}
           style={styles.errorButton}
@@ -123,7 +153,7 @@ export default function TripDetailScreen() {
       <SafeAreaView style={styles.errorContainer}>
         <Info size={64} color={Colors.error} />
         <Text style={styles.errorText}>Trip not found</Text>
-        <Button 
+        <Button
           title="Go Back"
           onPress={() => router.back()}
           style={styles.errorButton}
@@ -137,7 +167,10 @@ export default function TripDetailScreen() {
       <View style={styles.header}>
         <Animated.View style={[styles.headerBackground, headerAnimatedStyle]} />
         <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
             <ChevronLeft size={24} color={Colors.white} />
           </TouchableOpacity>
           <Animated.Text style={[styles.headerTitle, headerAnimatedStyle]}>
@@ -155,24 +188,36 @@ export default function TripDetailScreen() {
         scrollEventThrottle={16}
       >
         <View style={styles.imageContainer}>
-          <Image 
-            source={{ uri: trip.company.imageUrl || 'https://images.pexels.com/photos/1178448/pexels-photo-1178448.jpeg' }} 
-            style={styles.image} 
+          <Image
+            source={{
+              uri:
+                trip.company.imageUrl ||
+                'https://images.pexels.com/photos/1178448/pexels-photo-1178448.jpeg',
+            }}
+            style={styles.image}
           />
           <View style={styles.imageTitleContainer}>
-            <Text style={styles.imageTitle}>{trip.from} to {trip.to}</Text>
+            <Text style={styles.imageTitle}>
+              {trip.from} to {trip.to}
+            </Text>
             <View style={styles.ratingContainer}>
               <Star size={16} color={Colors.warning} fill={Colors.warning} />
-              <Text style={styles.rating}>{trip.company.rating} ({trip.company.reviewCount})</Text>
+              <Text style={styles.rating}>
+                {trip.company.rating} ({trip.company.reviewCount})
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
           <View style={styles.companySection}>
-            <Image 
-              source={{ uri: trip.company.logoUrl || 'https://images.pexels.com/photos/2402648/pexels-photo-2402648.jpeg' }} 
-              style={styles.companyLogo} 
+            <Image
+              source={{
+                uri:
+                  trip.company.logoUrl ||
+                  'https://images.pexels.com/photos/2402648/pexels-photo-2402648.jpeg',
+              }}
+              style={styles.companyLogo}
             />
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>{trip.company.name}</Text>
@@ -189,16 +234,18 @@ export default function TripDetailScreen() {
             <View style={styles.tripInfoItem}>
               <Calendar size={18} color={Colors.primary} />
               <Text style={styles.tripInfoText}>
-                {new Date(trip.date).toLocaleDateString('en-US', { 
+                {new Date(trip.date).toLocaleDateString('en-US', {
                   weekday: 'long',
-                  month: 'long', 
-                  day: 'numeric'
+                  month: 'long',
+                  day: 'numeric',
                 })}
               </Text>
             </View>
             <View style={styles.tripInfoItem}>
               <Clock size={18} color={Colors.primary} />
-              <Text style={styles.tripInfoText}>{trip.departureTime} - {trip.arrivalTime}</Text>
+              <Text style={styles.tripInfoText}>
+                {trip.departureTime} - {trip.arrivalTime}
+              </Text>
             </View>
             <View style={styles.tripInfoItem}>
               <MapPin size={18} color={Colors.primary} />
@@ -212,13 +259,13 @@ export default function TripDetailScreen() {
           <Text style={styles.sectionSubtitle}>
             Select up to 5 seats. Selected: {selectedSeats.length}
           </Text>
-          
-          <SeatSelection 
+
+          <SeatSelection
             seats={trip.seats}
             selectedSeats={selectedSeats}
             onSelectSeat={handleSeatSelect}
           />
-          
+
           <View style={styles.legendContainer}>
             <View style={styles.legendItem}>
               <View style={[styles.legendColor, styles.availableSeat]} />
@@ -238,7 +285,7 @@ export default function TripDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Amenities</Text>
           <View style={styles.amenitiesList}>
-            {trip.amenities.map((amenity, index) => (
+            {trip.amenities.map((amenity: string, index: number) => (
               <View key={index} style={styles.amenityItem}>
                 <View style={styles.amenityIcon}>
                   {/* Placeholder for amenity icon */}
@@ -252,7 +299,8 @@ export default function TripDetailScreen() {
         <View style={styles.policySection}>
           <Shield size={20} color={Colors.gray[700]} />
           <Text style={styles.policyText}>
-            Cancellation available up to 4 hours before departure with 80% refund.
+            Cancellation available up to 4 hours before departure with 80%
+            refund.
           </Text>
         </View>
       </AnimatedScrollView>
@@ -264,13 +312,15 @@ export default function TripDetailScreen() {
         </View>
         <View style={styles.totalContainer}>
           <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalPrice}>{trip.price * selectedSeats.length} ETB</Text>
+          <Text style={styles.totalPrice}>
+            {trip.price * selectedSeats.length} ETB
+          </Text>
         </View>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
             styles.continueButton,
-            selectedSeats.length === 0 && styles.disabledButton
-          ]} 
+            selectedSeats.length === 0 && styles.disabledButton,
+          ]}
           onPress={handleContinue}
           disabled={selectedSeats.length === 0}
         >

@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { Filter } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
@@ -9,7 +15,7 @@ interface TripFilterProps {
 
 export default function TripFilter({ onFilter }: TripFilterProps) {
   const [selectedFilter, setSelectedFilter] = useState('all');
-  
+
   const filters = [
     { id: 'all', label: 'All' },
     { id: 'price-low', label: 'Lowest Price' },
@@ -19,7 +25,7 @@ export default function TripFilter({ onFilter }: TripFilterProps) {
     { id: 'rating', label: 'Top Rated' },
   ];
 
-  const handleFilterSelect = (filterId) => {
+  const handleFilterSelect = (filterId: string) => {
     setSelectedFilter(filterId);
     // In a real app, this would filter the actual data
     // For now, we'll just notify the parent component
@@ -32,9 +38,9 @@ export default function TripFilter({ onFilter }: TripFilterProps) {
         <Filter size={16} color={Colors.gray[700]} />
         <Text style={styles.filterText}>Filter by:</Text>
       </View>
-      
-      <ScrollView 
-        horizontal 
+
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filtersContainer}
       >
@@ -43,14 +49,14 @@ export default function TripFilter({ onFilter }: TripFilterProps) {
             key={filter.id}
             style={[
               styles.filterOption,
-              selectedFilter === filter.id && styles.selectedFilter
+              selectedFilter === filter.id && styles.selectedFilter,
             ]}
             onPress={() => handleFilterSelect(filter.id)}
           >
-            <Text 
+            <Text
               style={[
                 styles.filterOptionText,
-                selectedFilter === filter.id && styles.selectedFilterText
+                selectedFilter === filter.id && styles.selectedFilterText,
               ]}
             >
               {filter.label}

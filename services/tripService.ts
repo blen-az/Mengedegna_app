@@ -1,4 +1,34 @@
 // Mock trip data and service functions
+// Firestore-backed helpers are added below; mocks remain for offline/demo.
+import { db } from './firebase';
+import { 
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
+
+export interface CreateTripInput {
+  operatorId: string;
+  busId: string;
+  origin: string;
+  destination: string;
+  date: string; // YYYY-MM-DD
+  departureTime: string; // HH:mm
+  arrivalTime?: string; // HH:mm
+  price: number;
+  seatsAvailable: number;
+  status?: 'active' | 'cancelled' | 'completed';
+}
+
+export interface TripFilter {
+  origin?: string | null;
+  destination?: string | null;
+  date?: string | null; // YYYY-MM-DD
+  status?: 'active' | 'cancelled' | 'completed' | null;
+}
 
 // Define types for trip data
 interface Company {
@@ -157,4 +187,37 @@ export const fetchTripById = async (id: string): Promise<Trip> => {
   }
   
   return trip;
+};
+
+// --- Firestore-backed helpers ---
+
+export const createTrip = async (input: CreateTripInput): Promise<string> => {
+  const tripsRef = collection(db, 'trips');
+  const docRef = await addDoc(tripsRef, {
+    operatorId: input.operatorId,
+    busId: input.busId,
+    origin: input.origin,
+    destination: input.destination,
+    date: input.date,
+    departureTime: input.departureTime,
+    arrivalTime: input.arrivalTime ?? null,
+    price: input.price,
+    seatsAvailable: input.seatsAvailable,
+    status: input.status ?? 'active',
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
+};
+
+export const listTrips = async (filter: TripFilter = {}): Promise<any[]> => {
+  const conditions = [] as any[];
+  if (filter.origin) conditions.push(where('origin', '==', filter.origin));
+  if (filter.destination) conditions.push(where('destination', '==', filter.destination));
+  if (filter.date) conditions.push(where('date', '==', filter.date));
+  if (filter.status) conditions.push(where('status', '==', filter.status));
+
+  const tripsRef = collection(db, 'trips');
+  const q = conditions.length ? query(tripsRef, ...conditions) : query(tripsRef);
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };

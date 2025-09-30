@@ -1,4 +1,16 @@
 // Mock booking data and service functions
+// Firestore-backed helpers are added below; mocks remain for offline/demo.
+import { db, auth } from './firebase';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+  doc,
+  runTransaction,
+} from 'firebase/firestore';
 
 // Define types for booking data
 export interface Passenger {
@@ -236,4 +248,54 @@ export const cancelBooking = async (bookingId: string): Promise<Booking> => {
   mockBookings[bookingIndex].status = 'cancelled';
   
   return mockBookings[bookingIndex];
+};
+
+// --- Firestore-backed helpers ---
+
+export interface CreateBookingInput {
+  tripId: string;
+  seats: string[];
+  passengers: Passenger[];
+  paymentId?: string;
+  totalAmount: number;
+}
+
+export const createBookingDoc = async (input: CreateBookingInput): Promise<string> => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) throw new Error('Not authenticated');
+
+  // Reserve seats and write booking in a transaction against a simple seatsAvailable counter
+  return await runTransaction(db, async (tx) => {
+    const tripRef = doc(db, 'trips', input.tripId);
+    const tripSnap = await tx.get(tripRef);
+    if (!tripSnap.exists()) throw new Error('Trip not found');
+    const tripData = tripSnap.data() as any;
+    if ((tripData.seatsAvailable ?? 0) < input.seats.length) {
+      throw new Error('Not enough seats available');
+    }
+
+    const bookingsRef = collection(db, 'bookings');
+    const bookingRef = await addDoc(bookingsRef, {
+      tripId: input.tripId,
+      userId,
+      seats: input.seats.length,
+      totalPrice: input.totalAmount,
+      paymentStatus: input.paymentId ? 'paid' : 'pending',
+      bookingStatus: 'confirmed',
+      createdAt: serverTimestamp(),
+    });
+
+    tx.update(tripRef, { seatsAvailable: (tripData.seatsAvailable ?? 0) - input.seats.length });
+
+    return bookingRef.id;
+  });
+};
+
+export const listUserBookings = async (): Promise<any[]> => {
+  const userId = auth.currentUser?.uid;
+  if (!userId) throw new Error('Not authenticated');
+  const bookingsRef = collection(db, 'bookings');
+  const q = query(bookingsRef, where('userId', '==', userId));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };

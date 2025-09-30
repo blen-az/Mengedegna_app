@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, BellDot } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
@@ -10,7 +17,7 @@ interface HeaderProps {
   showNotification?: boolean;
   onPressNotification?: () => void;
   style?: ViewStyle;
-  titleStyle?: ViewStyle;
+  titleStyle?: TextStyle;
 }
 
 export default function Header({

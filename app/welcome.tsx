@@ -1,7 +1,19 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+} from 'react-native-reanimated';
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
 
@@ -20,13 +32,20 @@ export default function WelcomeScreen() {
     if (isAuthenticated) {
       router.replace('/(tabs)');
     }
-    
+
     // Start animations
     logoOpacity.value = withSpring(1, { damping: 15 });
     titleOpacity.value = withDelay(300, withSpring(1, { damping: 15 }));
     subtitleOpacity.value = withDelay(600, withSpring(1, { damping: 15 }));
     buttonOpacity.value = withDelay(900, withSpring(1, { damping: 15 }));
-  }, [isAuthenticated]);
+  }, [
+    isAuthenticated,
+    router,
+    logoOpacity,
+    titleOpacity,
+    subtitleOpacity,
+    buttonOpacity,
+  ]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -59,44 +78,50 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: 'https://images.pexels.com/photos/1178448/pexels-photo-1178448.jpeg' }}
+        source={{
+          uri: 'https://images.pexels.com/photos/1178448/pexels-photo-1178448.jpeg',
+        }}
         style={styles.backgroundImage}
       />
       <View style={styles.overlay} />
-      
+
       <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <Image 
-            source={{ uri: 'https://images.pexels.com/photos/10227099/pexels-photo-10227099.jpeg' }} 
-            style={styles.logo} 
+          <Image
+            source={{
+              uri: 'https://images.pexels.com/photos/10227099/pexels-photo-10227099.jpeg',
+            }}
+            style={styles.logo}
           />
         </Animated.View>
-        
+
         <Animated.Text style={[styles.title, titleAnimatedStyle]}>
           Mengedegna
         </Animated.Text>
-        
+
         <Animated.Text style={[styles.subtitle, subtitleAnimatedStyle]}>
           Your journey, our priority
         </Animated.Text>
-        
+
         <Animated.View style={[styles.buttonContainer, buttonAnimatedStyle]}>
-          <TouchableOpacity 
-            style={styles.button} 
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => router.push('/login')}
           >
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.button, styles.registerButton]} 
+
+          <TouchableOpacity
+            style={[styles.button, styles.registerButton]}
             onPress={() => router.push('/register')}
           >
-            <Text style={[styles.buttonText, styles.registerButtonText]}>Register</Text>
+            <Text style={[styles.buttonText, styles.registerButtonText]}>
+              Register
+            </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.skipButton} 
+
+          <TouchableOpacity
+            style={styles.skipButton}
             onPress={() => router.push('/(tabs)')}
           >
             <Text style={styles.skipButtonText}>Continue as Guest</Text>
