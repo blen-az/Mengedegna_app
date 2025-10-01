@@ -178,7 +178,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password
       );
       await updateProfile(user, { displayName: fullName });
-      await createUserProfile(user.uid, { email, name: fullName });
+      await createUserProfile(user.uid, {
+        email,
+        name: fullName,
+        role: 'user',
+      });
       setUser({
         uid: user.uid,
         email: user.email,
@@ -221,6 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await createUserProfile(result.user.uid, {
             email: result.user.email || '',
             name: result.user.displayName || '',
+            role: 'user',
           });
           setUser({
             uid: result.user.uid,

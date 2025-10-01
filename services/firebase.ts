@@ -31,7 +31,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Type definitions (unchanged)
-interface UserProfile { email: string; name?: string; phone?: string; role?: 'customer' | 'admin'; createdAt?: Timestamp; updatedAt?: Timestamp; id?: string; }
+interface UserProfile { email: string; name?: string; phone?: string; role?: 'user' | 'admin' | 'operator'; createdAt?: Timestamp; updatedAt?: Timestamp; id?: string; }
 interface Bus { busNumber: string; plateNumber: string; type: string; capacity: number; status: string; createdAt?: Timestamp; updatedAt?: Timestamp; busId?: string; }
 interface Schedule { busId: string; routeId: string; departureDateTime: Date; arrivalDateTime?: Date; availableSeats: number; totalSeats: number; price: number; status: string; createdAt?: Timestamp; updatedAt?: Timestamp; scheduleId?: string; }
 interface Route { origin: string; destination: string; distance?: number; estimatedDuration?: number; createdAt?: Timestamp; updatedAt?: Timestamp; routeId?: string; }
@@ -101,7 +101,12 @@ if (__DEV__ && firebaseConfig.apiKey === 'demo-api-key') {
 // User profile functions
 export const createUserProfile = async (uid: string, userData: UserProfile): Promise<void> => {
   const userRef = doc(db, 'users', uid);
-  await setDoc(userRef, { ...userData, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+  await setDoc(userRef, {
+    ...userData,
+    role: userData.role || "user", // default role
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 };
 
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
