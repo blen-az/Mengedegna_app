@@ -96,7 +96,7 @@ export default function WelcomeScreen() {
         </Animated.View>
 
         <Animated.Text style={[styles.title, titleAnimatedStyle]}>
-          Mengedegna
+          Le'Guzo
         </Animated.Text>
 
         <Animated.Text style={[styles.subtitle, subtitleAnimatedStyle]}>
