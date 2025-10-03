@@ -15,7 +15,6 @@ import { ThumbsUp, MessageCircle, Share, Send } from 'lucide-react-native';
 import SafeAreaView from '@/components/core/SafeAreaView';
 import Header from '@/components/core/Header';
 import PostCard from '@/components/custom/PostCard';
-import { communityPosts } from '@/data/mockData';
 import Colors from '@/constants/Colors';
 import { Post } from '@/types/Post';
 import { createPost, getPosts, updatePostLikes } from '@/services/firebase';

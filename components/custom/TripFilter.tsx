@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,12 +10,14 @@ import { Filter } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
 interface TripFilterProps {
-  onFilter: (filteredTrips: any[]) => void;
+  selectedFilter: string;
+  onFilterChange: (filterId: string) => void;
 }
 
-export default function TripFilter({ onFilter }: TripFilterProps) {
-  const [selectedFilter, setSelectedFilter] = useState('all');
-
+export default function TripFilter({
+  selectedFilter,
+  onFilterChange,
+}: TripFilterProps) {
   const filters = [
     { id: 'all', label: 'All' },
     { id: 'price-low', label: 'Lowest Price' },
@@ -26,10 +28,7 @@ export default function TripFilter({ onFilter }: TripFilterProps) {
   ];
 
   const handleFilterSelect = (filterId: string) => {
-    setSelectedFilter(filterId);
-    // In a real app, this would filter the actual data
-    // For now, we'll just notify the parent component
-    onFilter([]);
+    onFilterChange(filterId);
   };
 
   return (

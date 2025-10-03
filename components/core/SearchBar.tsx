@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import { Search, X } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
@@ -37,6 +43,8 @@ export default function SearchBar({
         onSubmitEditing={onSubmit}
         returnKeyType="search"
         clearButtonMode="never"
+        accessibilityLabel={`Search input, ${placeholder}`}
+        accessibilityHint="Type to search for destinations, buses, or companies"
       />
       {value.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={handleClear}>

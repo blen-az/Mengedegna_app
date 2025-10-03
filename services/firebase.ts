@@ -198,3 +198,11 @@ export const updatePostLikes = async (postId: string, userId: string, liked: boo
 
 export { authInstance as auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult };
 export const getAuthInstance = () => authInstance;
+
+// Destinations functions
+export const getDestinations = async () => {
+  const destinationsRef = collection(db, 'destinations');
+  const q = query(destinationsRef, orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};

@@ -1,5 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Dimensions,
+} from 'react-native';
+import OptimizedImage from '@/components/core/OptimizedImage';
 import Colors from '@/constants/Colors';
 
 interface PromoBannerProps {
@@ -11,14 +18,23 @@ interface PromoBannerProps {
 
 const { width } = Dimensions.get('window');
 
-export default function PromoBanner({ title, description, imageUrl, onPress }: PromoBannerProps) {
+export default function PromoBanner({
+  title,
+  description,
+  imageUrl,
+  onPress,
+}: PromoBannerProps) {
   return (
-    <TouchableOpacity 
-      style={styles.container} 
+    <TouchableOpacity
+      style={styles.container}
       onPress={onPress}
       activeOpacity={onPress ? 0.8 : 1}
     >
-      <Image source={{ uri: imageUrl }} style={styles.backgroundImage} />
+      <OptimizedImage
+        source={{ uri: imageUrl }}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
       <View style={styles.overlay} />
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
