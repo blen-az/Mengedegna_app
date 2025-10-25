@@ -15,10 +15,8 @@ import {
 // Define types for booking data
 export interface Passenger {
   seatId: string;
-  fullName: string;
+  firstName: string;
   phone: string;
-  email: string;
-  idNumber: string;
 }
 
 export interface Company {
@@ -59,17 +57,13 @@ const mockBookings: Booking[] = [
     passengers: [
       {
         seatId: '12A',
-        fullName: 'John Doe',
+        firstName: 'John',
         phone: '+251912345678',
-        email: 'john@example.com',
-        idNumber: 'ET12345678',
       },
       {
         seatId: '12B',
-        fullName: 'Jane Doe',
+        firstName: 'Jane',
         phone: '+251987654321',
-        email: 'jane@example.com',
-        idNumber: '',
       },
     ],
     status: 'confirmed',
@@ -97,10 +91,8 @@ const mockBookings: Booking[] = [
     passengers: [
       {
         seatId: '5A',
-        fullName: 'John Doe',
+        firstName: 'John',
         phone: '+251912345678',
-        email: 'john@example.com',
-        idNumber: 'ET12345678',
       },
     ],
     status: 'pending',
@@ -128,17 +120,13 @@ const mockBookings: Booking[] = [
     passengers: [
       {
         seatId: '8C',
-        fullName: 'John Doe',
+        firstName: 'John',
         phone: '+251912345678',
-        email: 'john@example.com',
-        idNumber: 'ET12345678',
       },
       {
         seatId: '8D',
-        fullName: 'Sarah Smith',
+        firstName: 'Sarah',
         phone: '+251923456789',
-        email: 'sarah@example.com',
-        idNumber: '',
       },
     ],
     status: 'cancelled',
@@ -258,34 +246,67 @@ export interface CreateBookingInput {
   passengers: Passenger[];
   paymentId?: string;
   totalAmount: number;
+  status?: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus?: 'pending' | 'paid' | 'cancelled' | 'refunded';
 }
 
 export const createBookingDoc = async (input: CreateBookingInput): Promise<string> => {
   const userId = auth.currentUser?.uid;
   if (!userId) throw new Error('Not authenticated');
 
-  // Reserve seats and write booking in a transaction against a simple seatsAvailable counter
+  // Reserve seats and write booking in a transaction
   return await runTransaction(db, async (tx) => {
     const tripRef = doc(db, 'trips', input.tripId);
     const tripSnap = await tx.get(tripRef);
     if (!tripSnap.exists()) throw new Error('Trip not found');
     const tripData = tripSnap.data() as any;
+
+    // Check seat availability
     if ((tripData.seatsAvailable ?? 0) < input.seats.length) {
       throw new Error('Not enough seats available');
     }
+
+    // Get current seats array or initialize if not exists
+    let seatsArray = tripData.seats || [];
+    if (seatsArray.length === 0 && tripData.totalSeats) {
+      // Generate seats if not present
+      seatsArray = Array.from({ length: tripData.totalSeats }, (_, i) => ({
+        id: (i + 1).toString(),
+        status: 'available',
+      }));
+    }
+
+    // Check if selected seats are available
+    for (const seatId of input.seats) {
+      const seat = seatsArray.find((s: any) => s.id === seatId);
+      if (!seat || seat.status !== 'available') {
+        throw new Error(`Seat ${seatId} is not available`);
+      }
+    }
+
+    // Update seat statuses to 'booked'
+    const updatedSeats = seatsArray.map((seat: any) => ({
+      ...seat,
+      status: input.seats.includes(seat.id) ? 'booked' : seat.status,
+    }));
 
     const bookingsRef = collection(db, 'bookings');
     const bookingRef = await addDoc(bookingsRef, {
       tripId: input.tripId,
       userId,
-      seats: input.seats.length,
+      seats: input.seats,
+      passengers: input.passengers,
       totalPrice: input.totalAmount,
-      paymentStatus: input.paymentId ? 'paid' : 'pending',
-      bookingStatus: 'confirmed',
+      paymentStatus: input.paymentStatus || 'pending',
+      bookingStatus: input.status || 'pending',
       createdAt: serverTimestamp(),
     });
 
-    tx.update(tripRef, { seatsAvailable: (tripData.seatsAvailable ?? 0) - input.seats.length });
+    // Update trip with new seats array and available count
+    tx.update(tripRef, {
+      seats: updatedSeats,
+      seatsAvailable: (tripData.seatsAvailable ?? 0) - input.seats.length,
+    });
 
     return bookingRef.id;
   });
@@ -298,4 +319,128 @@ export const listUserBookings = async (): Promise<any[]> => {
   const q = query(bookingsRef, where('userId', '==', userId));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+// Backend API integration functions
+// NOTE: For APK testing on real devices, use ngrok to expose localhost backend
+// 1. Install ngrok: npm install -g ngrok
+// 2. Run backend: cd backend && npm run dev
+// 3. Expose port: ngrok http 5000
+// 4. Copy HTTPS URL (e.g., https://abc123.ngrok.io) and update .env:
+//    EXPO_PUBLIC_BACKEND_URL=https://abc123.ngrok.io/api
+// 5. Rebuild APK with updated .env
+const API_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+export const createBackendBooking = async (input: CreateBookingInput): Promise<any> => {
+  console.log('🔄 Booking attempt:', { tripId: input.tripId, seats: input.seats, passengers: input.passengers, totalAmount: input.totalAmount });
+  console.log('🌐 API Base URL:', API_BASE_URL);
+
+  const user = auth.currentUser;
+  if (!user) {
+    console.error('❌ Booking failed: Not authenticated');
+    throw new Error('Not authenticated');
+  }
+
+  try {
+    const idToken = await user.getIdToken();
+    console.log('📡 Making API call to:', `${API_BASE_URL}/bookings`);
+    console.log('🔑 User ID Token obtained:', !!idToken);
+
+    const response = await fetch(`${API_BASE_URL}/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(input),
+    });
+
+    console.log('📊 API response status:', response.status);
+    console.log('📊 Response headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Booking API error:', response.status, errorText);
+      console.error('❌ Full error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: errorText
+      });
+      throw new Error(`Failed to create booking: ${response.status} ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Booking created successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Booking failed with error:', error);
+    if (error instanceof Error) {
+      console.error('❌ Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
+    throw error;
+  }
+};
+
+export const getUserBookings = async (): Promise<any[]> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+
+  const idToken = await user.getIdToken();
+  const response = await fetch(`${API_BASE_URL}/bookings`, {
+    headers: {
+      'Authorization': `Bearer ${idToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch bookings');
+  }
+
+  return response.json();
+};
+
+export const processPayment = async (bookingId: string, paymentMethod: string, amount: number): Promise<any> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+
+  const idToken = await user.getIdToken();
+  const response = await fetch(`${API_BASE_URL}/payments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ bookingId, paymentMethod, amount }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Payment failed');
+  }
+
+  return response.json();
+};
+
+export const generateTickets = async (bookingId: string): Promise<any[]> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+
+  const idToken = await user.getIdToken();
+  const response = await fetch(`${API_BASE_URL}/tickets/generate/${bookingId}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${idToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to generate tickets');
+  }
+
+  return response.json();
 };

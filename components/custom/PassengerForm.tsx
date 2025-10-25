@@ -5,10 +5,8 @@ import Colors from '@/constants/Colors';
 interface PassengerFormProps {
   passenger: {
     seatId: string;
-    fullName: string;
+    firstName: string;
     phone: string;
-    email: string;
-    idNumber: string;
   };
   seatNumber: string;
   index: number;
@@ -33,13 +31,13 @@ export default function PassengerForm({
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Full Name*</Text>
+        <Text style={styles.label}>First Name*</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter full name"
+          placeholder="Enter first name"
           placeholderTextColor={Colors.gray[400]}
-          value={passenger.fullName}
-          onChangeText={(text) => onChange(index, 'fullName', text)}
+          value={passenger.firstName}
+          onChangeText={(text) => onChange(index, 'firstName', text)}
         />
       </View>
 
@@ -55,33 +53,12 @@ export default function PassengerForm({
         />
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email Address</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter email address"
-          placeholderTextColor={Colors.gray[400]}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={passenger.email}
-          onChangeText={(text) => onChange(index, 'email', text)}
-        />
-      </View>
-
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>ID Number</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="National ID, passport, or driver's license"
-          placeholderTextColor={Colors.gray[400]}
-          value={passenger.idNumber}
-          onChangeText={(text) => onChange(index, 'idNumber', text)}
-        />
-      </View>
-
-      <Text style={styles.note}>
-        * Required fields. Please provide either email or ID number.
-      </Text>
+      <Text style={styles.note}>* Required fields.</Text>
+      {index === 0 && (
+        <Text style={styles.mainPassengerNote}>
+          Main Passenger information will be used for booking confirmation.
+        </Text>
+      )}
     </View>
   );
 }
@@ -140,5 +117,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: Colors.gray[600],
     marginTop: 8,
+  },
+  mainPassengerNote: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: Colors.primary,
+    marginTop: 4,
   },
 });

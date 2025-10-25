@@ -1,59 +1,70 @@
-# Suggestions Implementation TODO
+# TODO: Update React Native Expo App for Real-Device Testing
 
-## Code Structure and Organization
+## Tasks
 
-- [ ] Group related services into a dedicated `services/` folder with index files.
-- [x] Standardize component styling approach (StyleSheet vs Tailwind).
-- [x] Add barrel exports in `types/` folder for simpler imports.
+- [ ] Update services/bookingService.ts: Remove hardcoded localhost fallback from API_BASE_URL
+- [ ] Update frontend .env.example: Ensure EXPO_PUBLIC_BACKEND_URL=https://your-ngrok-url.ngrok.io/api
+- [ ] Create backend/.env.example with MONGODB_URI, PORT, JWT_SECRET
+- [ ] Update backend/server.js: Change default MONGODB_URI to 'mongodb://127.0.0.1:27017/booking'
+- [ ] Update TODO.md: Add comprehensive real-device testing instructions with ngrok and APK setup
 
-## Performance and Optimization
+## Real-Device Testing Setup
 
-- [x] Use `useMemo` in `app/(tabs)/index.tsx` for filtered trips.
-- [x] Replace ScrollView with FlatList for trip listings.
-- [x] Implement lazy loading and optimize image sizes.
-- [x] Add debouncing to search input.
+1. **Set up backend environment:**
 
-## UI/UX Improvements
+   - Copy `backend/.env.example` to `backend/.env`
+   - Update with your MongoDB URI and JWT secret
 
-- [x] Enable and properly implement font loading in `_layout.tsx`.
-- [x] Add accessibility labels and hints to interactive elements.
-- [x] Fix search functionality (combined search and filter logic)
-- [ ] Implement consistent loading and error states across screens.
-- [ ] Test and optimize responsiveness for multiple device sizes.
-- [ ] Add user-friendly error messages and retry mechanisms.
+2. **Run backend locally:**
 
-## Firebase Usage and Security
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
 
-- [ ] Add error handling and retry logic for Firestore operations.
-- [ ] Verify and enhance Firestore security rules for role-based access.
-- [ ] Implement local caching for frequently accessed data.
-- [ ] Use Firestore batch writes for related operations.
+   Expected: "✅ MongoDB connected successfully" and "Server running on port 5000"
 
-## TypeScript Typing and Validation
+3. **Expose backend with ngrok:**
 
-- [ ] Use Zod schemas to validate Firestore data before usage.
-- [ ] Add stricter typing to Firebase service functions and components.
-- [ ] Standardize naming conventions for types and interfaces.
+   ```bash
+   # Install ngrok if needed
+   npm install -g ngrok
+   # Expose port 5000
+   ngrok http 5000
+   ```
 
-## Project Configuration and Scripts
+   Copy the HTTPS URL (e.g., https://abc123.ngrok.io)
 
-- [ ] Audit and update dependencies; remove unused packages.
-- [ ] Add linting, formatting, and testing scripts to `package.json`.
-- [ ] Optimize `app.json` for production builds.
-- [ ] Securely manage environment variables.
+4. **Update frontend environment:**
 
-## Specific File Improvements
+   - Copy `.env.example` to `.env`
+   - Set `EXPO_PUBLIC_BACKEND_URL=https://abc123.ngrok.io/api`
 
-- [x] context/AuthContext.tsx: Improve error handling, loading states, and caching.
-- [ ] services/firebase.ts: Add connection monitoring, offline support, and data validation.
-- [ ] app/(tabs)/index.tsx: Optimize data fetching, add pull-to-refresh, improve search UX.
-- [x] components/custom/TripCard.tsx: Standardize styling, improve typing and accessibility.
-- [ ] app/(tabs)/community.tsx: Add pagination, real-time updates, and image upload for posts.
+5. **Build APK:**
 
-## Next Steps
+   ```bash
+   npx expo build:android
+   ```
 
-- [ ] Prioritize tasks based on your needs.
-- [ ] Implement improvements incrementally.
-- [ ] Test thoroughly after each change.
+   Or for development build:
 
-Please let me know which items you want to prioritize or if you want me to start implementing any of these improvements.
+   ```bash
+   npx expo run:android --variant release
+   ```
+
+6. **Install and test on device:**
+   - Transfer APK to Android device
+   - Install APK
+   - Test booking flow: Select trip → Choose seats → Enter passenger info → Book → Pay → Generate QR ticket
+   - Verify booking requests reach backend via ngrok (check backend logs for API calls)
+
+## Verification
+
+- [ ] Backend starts successfully with new .env
+- [ ] Ngrok exposes port 5000 with HTTPS URL
+- [ ] Frontend uses ngrok URL for API calls
+- [ ] APK builds without errors
+- [ ] Booking button press sends request to backend via ngrok
+- [ ] Backend logs show incoming booking requests with correct payload
+- [ ] Full booking flow works on physical device

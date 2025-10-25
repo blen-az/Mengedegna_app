@@ -33,8 +33,8 @@ export const TripSchema = z.object({
     imageUrl: z.string().url(),
     rating: z.number().min(0).max(5),
     reviewCount: z.number().min(0),
-  }),
-  amenities: z.array(z.string()),
+  }).optional(),
+  amenities: z.array(z.string()).optional(),
   seats: z.array(z.object({
     id: z.string(),
     status: z.enum(['available', 'booked', 'selected']),
@@ -156,4 +156,72 @@ export interface BookingDoc {
   paymentStatus: PaymentStatus;
   bookingStatus: BookingStatus;
   createdAt: Date | unknown;
+}
+
+// Backend Models (for API integration)
+export interface BackendUser {
+  _id: string;
+  firebaseUid: string;
+  email: string;
+  displayName?: string;
+  phone?: string;
+  role: 'user' | 'admin';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface BackendBooking {
+  _id: string;
+  userId: string;
+  tripId: string;
+  seats: string[];
+  passengers: {
+    seatId: string;
+    firstName: string;
+    phone: string;
+  }[];
+  totalAmount: number;
+  status: 'pending' | 'confirmed' | 'paid' | 'cancelled';
+  paymentStatus: 'unpaid' | 'paid' | 'refunded';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Transaction {
+  _id: string;
+  bookingId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: 'telebirr' | 'cbe_birr' | 'm_pesa' | 'fenan_pay';
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  transactionId: string;
+  gatewayResponse: any;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Ticket {
+  _id: string;
+  bookingId: string;
+  passengerId: string;
+  qrCode: string;
+  seatId: string;
+  tripDetails: {
+    from: string;
+    to: string;
+    date: string;
+    departureTime: string;
+    company: {
+      name: string;
+      logoUrl?: string;
+    };
+  };
+  passengerDetails: {
+    firstName: string;
+    phone: string;
+  };
+  status: 'active' | 'used' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
 }

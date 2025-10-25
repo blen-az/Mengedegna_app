@@ -23,6 +23,14 @@ export default function SeatSelection({
   selectedSeats,
   onSelectSeat,
 }: SeatSelectionProps) {
+  if (!seats || !Array.isArray(seats) || seats.length === 0) {
+    return (
+      <View style={styles.noSeatsContainer}>
+        <Text style={styles.noSeatsText}>No seats available</Text>
+      </View>
+    );
+  }
+
   // Organize seats in a grid - assuming 4 seats per row (2-2 configuration)
   const rowsOfSeats = [];
   const seatsPerRow = 4;
@@ -177,5 +185,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: Colors.gray[700],
+  },
+  noSeatsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  noSeatsText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: Colors.gray[600],
   },
 });
