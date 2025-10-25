@@ -191,7 +191,7 @@ export default function TripDetailScreen() {
           <Image
             source={{
               uri:
-                trip.company.imageUrl ||
+                trip.company?.imageUrl ||
                 'https://images.pexels.com/photos/1178448/pexels-photo-1178448.jpeg',
             }}
             style={styles.image}
@@ -203,7 +203,7 @@ export default function TripDetailScreen() {
             <View style={styles.ratingContainer}>
               <Star size={16} color={Colors.warning} fill={Colors.warning} />
               <Text style={styles.rating}>
-                {trip.company.rating} ({trip.company.reviewCount})
+                {trip.company?.rating} ({trip.company?.reviewCount})
               </Text>
             </View>
           </View>
@@ -214,13 +214,13 @@ export default function TripDetailScreen() {
             <Image
               source={{
                 uri:
-                  trip.company.logoUrl ||
+                  trip.company?.logoUrl ||
                   'https://images.pexels.com/photos/2402648/pexels-photo-2402648.jpeg',
               }}
               style={styles.companyLogo}
             />
             <View style={styles.companyInfo}>
-              <Text style={styles.companyName}>{trip.company.name}</Text>
+              <Text style={styles.companyName}>{trip.company?.name}</Text>
               <View style={styles.busInfo}>
                 <Text style={styles.busType}>{trip.busType}</Text>
                 <Text style={styles.busDot}>•</Text>
@@ -285,7 +285,7 @@ export default function TripDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Amenities</Text>
           <View style={styles.amenitiesList}>
-            {trip.amenities.map((amenity: string, index: number) => (
+            {trip.amenities?.map((amenity: string, index: number) => (
               <View key={index} style={styles.amenityItem}>
                 <View style={styles.amenityIcon}>
                   {/* Placeholder for amenity icon */}
